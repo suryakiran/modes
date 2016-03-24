@@ -6,7 +6,7 @@
 (books/require 'chess-players)
 (books/require 'chess-hooks-and-functions)
 (books/require 'chess-pgn)
-(books/require 'highlight)
+(books/require 'books-highlight)
 
 (defvar books/highlight/keymap nil "Keymap used in highlight regions")
 (make-variable-buffer-local 'books/highlight/keymap)

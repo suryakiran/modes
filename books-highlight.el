@@ -1,6 +1,6 @@
 (books/require 'overlay)
 
-(provide 'books/highlight)
+(provide 'books/books-highlight)
 
 (books/defface books/highlight/face "Face used to highlight regions" books
                (:background "yellow"))
