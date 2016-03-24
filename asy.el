@@ -1,0 +1,93 @@
+(provide 'books/asy)
+
+(defun asy/get-label-name (p)
+  (interactive)
+  (let ((out))
+    (cond
+     ((string-match "\\([A-Za-z]\\)dd" p)
+      (setq out (format "%s^{\\second}" (s-upcase (match-string 1 p)))))
+     
+     ((string-match "\\([A-Za-z]\\)d" p)
+      (setq out (format "%s^{\\prime}" (s-upcase (match-string 1 p)))))
+     
+     ((string-match "\\([A-Za-z]\\)\\([a-z0-9]\\)" p)
+      (setq out (format "%s_%s" (s-upcase (match-string 1 p)) (match-string 2 p))))
+     
+     ((string-match-p "[A-Za-z]" p) (setq out (s-upcase p)))
+     
+     )
+    (format "\"$%s$\"" out)
+    ))
+
+(defun asy/demarcate-pen-region-in-line (line)
+  (let ((strings) (delims) (reg "[;@/]"))
+    (setq line (s-trim line))
+    (unless (s-ends-with? ";" line)
+      (setq line (s-concat line ";")))
+    (setq delims (-flatten (s-match-strings-all reg line)))
+    (setq strings (s-split reg line))
+    (setq strings (--remove (s-blank? it) strings))
+    (setq strings (--map (let ((out))
+                           (if (s-starts-with? "(" it)
+                               (setq out "%s")
+                             (setq out "(%s)"))
+                           (format out it))
+                         strings))
+    (s-join "" (-interleave strings delims))
+    ))
+
+(defun asy/demarcate-pen-regions ()
+  (interactive)
+  (let ((lines) (new-lines) (s) (e))
+    (save-excursion
+      (unless (region-active-p)
+        (skg/select-line))
+      (setq s (region-beginning))
+      (setq e (region-end))
+      (setq lines (s-lines (buffer-substring-no-properties s e)))
+      (setq new-lines (--map (asy/demarcate-pen-region-in-line it) lines))
+      (books/replace-text-in-range s e (s-join "\n" new-lines)))
+    ))
+
+(defun asy/hooks ()
+  (sp-local-pair 'asy-mode "\"" "\"" :trigger "\"")
+  (sp-local-pair 'asy-mode "$" "$" :trigger "$")
+  )
+
+(add-hook 'asy-mode-hook '(lambda () (asy/hooks)))
+
+(defun asy/true-false (text)
+  (let ((return))
+    (when (s-starts-with? "t" text)
+      (setq return "true"))
+    (when (s-starts-with? "f" text)
+      (setq return "false"))
+    return))
+
+(defun asy/compile-to-fig()
+  (interactive)
+  (asy/compile "fig")
+  )
+
+(defun asy/compile-to-file-name()
+  (interactive)
+  (let ((file-name (f-no-ext (f-filename (buffer-file-name)))))
+    (asy/compile file-name)
+    ))
+
+(defun asy/compile (out)
+  (let ((cmdf "asy -config config.asy -o %s")
+        )
+    (setq asy-command (format cmdf out))
+    (asy-compile)
+    ))
+
+(books/add-favorites (make-instance 'Dir :dir (getenv "ASYMPTOTE_DIR") :pattern "*.asy") 'asy-mode)
+
+(define-key asy-mode-map (kbd "M-n") '(lambda () (interactive) (books/open-chapter 'next)))
+(define-key asy-mode-map (kbd "M-p") '(lambda () (interactive) (books/open-chapter 'prev)))
+(define-key asy-mode-map (kbd "<f7>") 'asy/demarcate-pen-regions)
+(define-key asy-mode-map ";" 'skg/smart-semicolon)
+(define-key asy-mode-map (kbd "C-;") '(lambda () (interactive) (insert ";")))
+(define-key asy-mode-map (kbd "<f5>") 'asy/compile-to-fig)
+(define-key asy-mode-map (kbd "<f6>") 'asy/compile-to-file-name)
