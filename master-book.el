@@ -19,7 +19,7 @@
 
 (defun books/page-extract-commands (firsts)
   (let ((ranges (books/get-page-ranges firsts)))
-    (--map-indexed (format "python extract.py -f %d -l %d -o %d.tex" (car it) (cdr it) it-index) ranges)
+    (--map-indexed (format "waf --first=%d --last=%d --out=%d.tex extract" (car it) (cdr it) it-index) ranges)
     ))
 
 (defun books/copy-text-in-parens ()
