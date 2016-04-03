@@ -1071,4 +1071,17 @@ This regexp handles both long and short form.")
       '(cmc/variation-face ((t (:foreground "dark cyan"))))
       )))
 
+(defun cl/change-dirty-text-to-move (type)
+  (let ((pos (re-search-backward (cdr (assoc type cl/moves-type-alist)) (point-min) t))
+        (range) (text-range) (text))
+    (when pos
+      (setq range (cons (match-beginning 0) (match-end 0)))
+      (setq text-range (cons (match-beginning 3) (match-end 3)))
+      (if (and (eq type 'vone) (s-blank? (s-trim (buffer-substring-no-properties (car text-range) (cdr text-range)))))
+          (delete-region (car range) (cdr range))
+        (books/replace-text-in-range (car range) (cdr range)
+                                   (chess/move-from-text-as-string text-range type))
+        ))
+    ))
+
 (provide 'books/chess-move-correction)
