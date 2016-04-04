@@ -619,7 +619,7 @@
                     (insert (format "(defun %s/cleanup-moves-in-parens (start end)\n" mode))
                     (insert "(let (\n(text (buffer-substring-no-properties start end))\n)\n")
                     (insert "))\n\n")
-                    (insert (books/mode-fun-as-str mode "cleanup-moves"))
+                    (insert (books/mode-fun-as-str mode "cleanup-moves" "type"))
                     (insert (books/mode-fun-as-str mode "replace-chars" "current-char" "point"))
                     (insert (books/mode-fun-as-str mode "hooks"))
                     (goto-char (- (point) 3))
